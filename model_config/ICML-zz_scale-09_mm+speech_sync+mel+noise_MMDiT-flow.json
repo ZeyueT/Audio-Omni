@@ -1,0 +1,165 @@
+{
+    "model_type": "diffusion_cond",
+    "sample_size": 528000,
+    "sample_rate": 48000,
+    "video_fps": 5,
+    "audio_channels": 1,
+    "model": {
+        "pretransform": {
+            "type": "autoencoder",
+            "iterate_batch": true,
+            "config": {
+                "encoder": {
+                    "type": "dac-vae",
+                    "requires_grad": true,
+                    "config": {
+                        "encoder_dim": 128,
+                        "encoder_rates": [2, 3, 4, 5, 8],
+                        "latent_dim": 128,
+                        "decoder_dim": 2048,
+                        "decoder_rates": [8, 5, 4, 3, 2],
+                        "n_codebooks": 9,
+                        "codebook_size": 1024,
+                        "codebook_dim": 8,
+                        "quantizer_dropout": false,
+                        "sample_rate": 48000,
+                        "continuous": false,
+                        "model_path": "/mnt/shanghai2cephs/zeyuetian/project/CVPR-VAE/HunyuanVideo-Foley/ckpt/vae_128d_48k.pth"
+                    }
+                },
+                "decoder": {
+                    "type": "dac-vae",
+                    "config": {
+                        "encoder_dim": 128,
+                        "encoder_rates": [2, 3, 4, 5, 8],
+                        "latent_dim": 128,
+                        "decoder_dim": 2048,
+                        "decoder_rates": [8, 5, 4, 3, 2],
+                        "n_codebooks": 9,
+                        "codebook_size": 1024,
+                        "codebook_dim": 8,
+                        "quantizer_dropout": false,
+                        "sample_rate": 48000,
+                        "continuous": false,
+                        "model_path": "/mnt/shanghai2cephs/zeyuetian/project/CVPR-VAE/HunyuanVideo-Foley/ckpt/vae_128d_48k.pth"
+                    }
+                },   
+                "latent_dim": 64,
+                "downsampling_ratio": 960,
+                "io_channels": 1,
+                "model_path": "/mnt/shanghai2cephs/zeyuetian/project/CVPR-VAE/HunyuanVideo-Foley/ckpt/vae_128d_48k.pth"
+            }
+        },
+        "conditioning": {
+            "configs": [
+                {
+                    "id": "omni_prompt",
+                    "type": "qwen_omni",
+                    "config": {
+                        "qwen_omni_model_name": "Qwen/Qwen2.5-Omni-3B",
+                        "add_sync_feature": false,
+                        "project_out": false,
+                        "out_features": 2048,
+                        "pad_length": 2048,
+                        "layer_idx": -2
+                    }
+                },
+                {
+                    "id": "sync_feature",
+                    "type": "sync_feature",
+                    "config": {
+                        "sync_seq_dim": 240,
+                        "project_out": false,
+                        "sync_output_dim": 240
+                    }
+                },
+                {
+                    "id": "speech_prompt",
+                    "type": "tts-f5",
+                    "config": {
+                        "tts_model_name": "tts-f5",
+                        "vocab_file": "/mnt/shangcephfs/mm-base-vision-ascend/zeyuetian/project/AudioX-speech/data/speech/vocab.txt",
+                        "seq_len": 2584,
+                        "proj_seq_len": 256                        
+                    }
+                },
+                {
+                    "id": "audio_input_prompt",
+                    "type": "mel_spec",
+                    "config": {
+                        "mel_spec_type": "mel_features",
+                        "n_fft": 1024,
+                        "hop_length": 256,
+                        "win_length": 1024,
+                        "n_mel_channels": 100,
+                        "target_sample_rate": 44100,
+                        "mask_ratio_start": 0.7,
+                        "mask_ratio_end": 1,
+                        "seq_len": 550
+                    }
+                }
+            ],
+            "cond_dim": 768
+        },
+        "diffusion": {
+            "cross_attention_cond_ids": ["omni_prompt", "speech_prompt"],
+            "global_cond_ids": ["sync_feature", "audio_input_prompt"],
+            "type": "mmdit",
+            "gate": false,
+            "diffusion_objective": "rectified_flow",            
+            "config": {
+                "io_channels": 128,
+                "embed_dim": 1536,
+                "depth": 20,
+                "num_heads": 24,
+                "cond_token_dim": 768,
+                "global_cond_dim": 768,
+                "global_dim": 790,
+                "_latent_seq_len": 550,
+                "mm_seq_len": 2304,
+                "project_cond_tokens": false,
+                "transformer_type": "continuous_transformer",
+                "condition_mask_type": "cat",
+                "video_fps": 5
+            }
+        },
+        "io_channels": 128
+    },
+    "training": {
+        "use_ema": true,
+        "log_loss_info": false,
+        "optimizer_configs": {
+            "diffusion": {
+                "optimizer": {
+                    "type": "AdamW",
+                    "config": {
+                        "lr": 2e-5,
+                        "betas": [0.9, 0.999],
+                        "weight_decay": 1e-3
+                    }
+                },
+                "scheduler": {
+                    "type": "InverseLR",
+                    "config": {
+                        "inv_gamma": 1000000,
+                        "power": 0.5,
+                        "warmup": 0.99,
+                        "final_lr": 1e-5
+                    }
+                }
+            }
+        },
+        "demo": {
+            "demo_every": 2000,
+            "demo_steps": 250,
+            "num_demos": 4,
+            "demo_cond": [
+                {"prompt": "Amen break 174 BPM", "seconds_start": 0, "seconds_total": 12},
+                {"prompt": "A beautiful orchestral symphony, classical music", "seconds_start": 0, "seconds_total": 160},
+                {"prompt": "Chill hip-hop beat, chillhop", "seconds_start": 0, "seconds_total": 190},
+                {"prompt": "A pop song about love and loss", "seconds_start": 0, "seconds_total": 180}
+            ],
+            "demo_cfg_scales": [3, 6, 9]
+        }
+    }
+}

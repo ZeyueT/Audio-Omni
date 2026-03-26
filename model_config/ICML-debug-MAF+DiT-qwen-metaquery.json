@@ -1,0 +1,127 @@
+{
+    "model_type": "diffusion_cond",
+    "sample_size": 485100,
+    "sample_rate": 44100,
+    "video_fps": 5,
+    "audio_channels": 2,
+    "model": {
+        "pretransform": {
+            "type": "autoencoder",
+            "iterate_batch": true,
+            "config": {
+                "encoder": {
+                    "type": "oobleck",
+                    "requires_grad": false,
+                    "config": {
+                        "in_channels": 2,
+                        "channels": 128,
+                        "c_mults": [1, 2, 4, 8, 16],
+                        "strides": [2, 4, 4, 8, 8],
+                        "latent_dim": 128,
+                        "use_snake": true
+                    }
+                },
+                "decoder": {
+                    "type": "oobleck",
+                    "config": {
+                        "out_channels": 2,
+                        "channels": 128,
+                        "c_mults": [1, 2, 4, 8, 16],
+                        "strides": [2, 4, 4, 8, 8],
+                        "latent_dim": 64,
+                        "use_snake": true,
+                        "final_tanh": false
+                    }
+                },
+                "bottleneck": {
+                    "type": "vae"
+                },
+                "latent_dim": 64,
+                "downsampling_ratio": 2048,
+                "io_channels": 2
+            }
+        },
+        "conditioning": {
+            "configs": [
+                {
+                    "id": "omni_prompt",
+                    "type": "qwen_omni_metaquery",
+                    "config": {
+                        "qwen_omni_model_name": "Qwen/Qwen2.5-Omni-3B",
+                        "add_sync_feature": false,
+                        "project_out": true,
+                        "out_features": 2048,
+                        "num_metaqueries": 512,
+                        "connector_config": {
+                            "connector_num_hidden_layers": 2,
+                            "connector_in_dim": 2048,
+                            "connector_out_dim": 768
+                        }
+                    }
+                }
+            ],
+            "cond_dim": 768
+        },
+        "diffusion": {
+            "cross_attention_cond_ids": ["omni_prompt"],
+            "global_cond_ids": [],
+            "type": "dit",
+            "gate": false,
+            "gate_type": "MAF",
+            "gate_type_config": {
+                "num_experts_per_modality": 64,
+                "num_heads": 24,
+                "num_fusion_layers": 8
+            },
+            "config": {
+                "io_channels": 64,
+                "embed_dim": 1536,
+                "depth": 24,
+                "num_heads": 24,
+                "cond_token_dim": 768,
+                "global_cond_dim": 768,
+                "project_cond_tokens": false,
+                "transformer_type": "continuous_transformer",
+                "condition_mask_type": "cat",
+                "video_fps": 5
+            }
+        },
+        "io_channels": 64
+    },
+    "training": {
+        "use_ema": true,
+        "log_loss_info": false,
+        "optimizer_configs": {
+            "diffusion": {
+                "optimizer": {
+                    "type": "AdamW",
+                    "config": {
+                        "lr": 5e-5,
+                        "betas": [0.9, 0.999],
+                        "weight_decay": 1e-3
+                    }
+                },
+                "scheduler": {
+                    "type": "InverseLR",
+                    "config": {
+                        "inv_gamma": 1000000,
+                        "power": 0.5,
+                        "warmup": 0.99
+                    }
+                }
+            }
+        },
+        "demo": {
+            "demo_every": 2000,
+            "demo_steps": 250,
+            "num_demos": 4,
+            "demo_cond": [
+                {"prompt": "Amen break 174 BPM", "seconds_start": 0, "seconds_total": 12},
+                {"prompt": "A beautiful orchestral symphony, classical music", "seconds_start": 0, "seconds_total": 160},
+                {"prompt": "Chill hip-hop beat, chillhop", "seconds_start": 0, "seconds_total": 190},
+                {"prompt": "A pop song about love and loss", "seconds_start": 0, "seconds_total": 180}
+            ],
+            "demo_cfg_scales": [3, 6, 9]
+        }
+    }
+}

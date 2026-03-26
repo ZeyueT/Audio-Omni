@@ -1,0 +1,9 @@
+{
+    "AudioX": {
+        "model_config": "model_config/ICML-zz_scale-10_mm+speech_sync+mel+noise_DiT-flow-depth.json",
+        "ckpt_path": "model/aa10592e_step-18000.ckpt",
+        "pretrained_name": null,
+        "pretransform_ckpt_path": null,
+        "model_type": "diffusion_cond"
+    }
+}
