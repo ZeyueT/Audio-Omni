@@ -47,7 +47,7 @@ To overcome the critical data scarcity in audio editing, we construct a large-sc
 ### Install
 
 ```bash
-git clone https://github.com/Audio-Omni/Audio-Omni.git
+git clone https://github.com/ZeyueT/Audio-Omni.git
 cd Audio-Omni
 
 conda create -n audio-omni python=3.11 -y
