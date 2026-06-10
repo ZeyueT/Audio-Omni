@@ -228,12 +228,11 @@ Audio-Omni/
 If you find our work useful, please cite:
 
 ```bibtex
-@inproceedings{tian2026audioomni,
-  author    = {Tian, Zeyue and Yang, Binxin and Liu, Zhaoyang and Zhang, Jiexuan and Yuan, Ruibin and Yin, Hubery and Chen, Qifeng and Li, Chen and Lyu, Jing and Xue, Wei and Guo, Yike},
-  title     = {Audio-Omni: Extending Multi-modal Understanding to Versatile Audio Generation and Editing},
-  booktitle = {Proceedings of SIGGRAPH Conference Papers 2026},
-  year      = {2026},
-  doi       = {10.1145/3799902.3811191},
+@article{tian2026audio,
+  title={Audio-Omni: Extending Multi-modal Understanding to Versatile Audio Generation and Editing},
+  author={Tian, Zeyue and Yang, Binxin and Liu, Zhaoyang and Zhang, Jiexuan and Yuan, Ruibin and Yin, Hubery and Chen, Qifeng and Li, Chen and Lyu, Jing and Xue, Wei and others},
+  journal={arXiv preprint arXiv:2604.10708},
+  year={2026}
 }
 ```
 
